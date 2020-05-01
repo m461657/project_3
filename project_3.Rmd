@@ -1,6 +1,15 @@
 # Project 3
 ## Megan Willis & Kyle Goulart
 
+```{r, eval = FALSE}
+library(tidyverse)
+library(tidymodels)
+library(ggplot2)
+library(ggthemes)
+library(lubridate)
+```
+
+
 ```{r}
 # Our dataset: Spotify Songs
 spotify_songs <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-01-21/spotify_songs.csv')
@@ -21,3 +30,37 @@ Logic
 Vampire Weekend
 Chance
 Mac DeMarco
+
+### Filtering for our favorite artists
+```{r}
+favorite_artists = spotify_songs %>% 
+  filter(track_artist %in% c("Tame Impala", "A$AP Rocky", "Fleetwood Mac", "Queen", "Childish Gambino", "Creedence Clearwater Revival", "Elton John", "Tyler, The Creator", "Michael Jackson", "Post Malone", "Logic", "Vampire Weekend", "Chance the Rapper", "Mac DeMarco")) %>% 
+  select(track_artist, track_name, track_album_name, track_album_release_date, track_popularity, playlist_genre, danceability, energy, loudness, speechiness, acousticness, instrumentalness, liveness, tempo, duration_ms)
+```
+
+*Let's do some exploratory analysis*
+```{r}
+favorite_artists %>% 
+  group_by(track_artist) %>% 
+  count() %>% 
+  ggplot(aes(x = fct_reorder(track_artist, n), y = n))+
+  geom_col()+
+  coord_flip()
+```
+
+**Talk about how the predictions may be more accurate for those with more songs**
+
+**If predictive model is REALLY bad create a fct_lump other category for artists with small n**
+
+**predicting genre by popularity?**
+
+**release date and popularity**
+
+### Let's create a column for release year
+
+```{r}
+favorite_artists = favorite_artists %>% 
+  mutate(release_year = substring(track_album_release_date, 1, 4)) %>% 
+  mutate(release_year = as.numeric(release_year))
+```
+
