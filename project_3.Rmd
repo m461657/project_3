@@ -21,7 +21,7 @@ A$AP Rocky
 Fleetwood Mac
 Queen
 Childish Gambino
-CCR
+Creedence Clearwater Revival
 Elton John
 Tyler, The Creator
 Michael Jackson
@@ -31,6 +31,8 @@ Vampire Weekend
 Chance
 Mac DeMarco
 
+## Data Wrangling
+
 ### Filtering for our favorite artists
 ```{r}
 favorite_artists = spotify_songs %>% 
@@ -38,15 +40,33 @@ favorite_artists = spotify_songs %>%
   select(track_artist, track_name, track_album_name, track_album_release_date, track_popularity, playlist_genre, danceability, energy, loudness, speechiness, acousticness, instrumentalness, liveness, tempo, duration_ms)
 ```
 
-*Let's do some exploratory analysis*
+### Let's create a column for release year
 ```{r}
+favorite_artists = favorite_artists %>% 
+  mutate(release_year = substring(track_album_release_date, 1, 4)) %>% 
+  mutate(release_year = as.numeric(release_year)) %>% 
+  select(track_artist, track_name, track_album_name, release_year, track_popularity, playlist_genre, danceability, energy, loudness, speechiness, acousticness, instrumentalness, liveness, tempo, duration_ms)
+```
+
+
+## Data Exploration
+
+```{r}
+rgb(30, 215, 96, max=255)
+
 favorite_artists %>% 
   group_by(track_artist) %>% 
   count() %>% 
-  ggplot(aes(x = fct_reorder(track_artist, n), y = n)) + 
-  geom_col() + 
-  coord_flip() + 
-  labs(x = "Favorite Artists", y = "Song Count")
+  ggplot(aes(x = fct_reorder(track_artist, n), y = n))+
+  geom_col(aes(fill = "#1ED760"))+
+  coord_flip()+
+  labs(x = "", y = "Song Count")
+```
+
+```{r}
+favorite_artists %>% 
+  group_by(playlist_genre) %>% 
+  count()
 ```
 
 **Talk about how the predictions may be more accurate for those with more songs**
@@ -57,12 +77,104 @@ favorite_artists %>%
 
 **release date and popularity**
 
-### Let's create a column for release year
 
-```{r}
-favorite_artists = favorite_artists %>% 
-  mutate(release_year = substring(track_album_release_date, 1, 4)) %>% 
-  mutate(release_year = as.numeric(release_year)) %>% 
-  select(track_artist, track_name, track_album_name, release_year, track_popularity, playlist_genre, danceability, energy, loudness, speechiness, acousticness, instrumentalness, liveness, tempo, duration_ms)
+**Let's see if certain artists have similar values for tempo and dancibility**
+
+```{r, eval = FALSE}
+favorite_artists %>% 
+  filter(track_artist == "Queen") %>%   
+  ggplot(aes(x = danceability))+
+  geom_histogram(color = "white")
+
+favorite_artists %>% 
+  filter(track_artist == "Logic") %>% 
+  ggplot(aes(x = danceability))+
+  geom_histogram(color = "white")
+
+favorite_artists %>% 
+  filter(track_artist == "Queen") %>%   
+  ggplot(aes(x = tempo))+
+  geom_histogram(color = "white")
+
+favorite_artists %>% 
+  filter(track_artist == "Logic") %>% 
+  ggplot(aes(x = tempo))+
+  geom_histogram(color = "white")
+
+favorite_artists %>% 
+  filter(track_artist == "Queen") %>%   
+  ggplot(aes(x = acousticness))+
+  geom_histogram(color = "white")
+
+favorite_artists %>% 
+  filter(track_artist == "Logic") %>% 
+  ggplot(aes(x = acousticness))+
+  geom_histogram(color = "white")
+
+favorite_artists %>% 
+  filter(track_artist == "Queen") %>%   
+  ggplot(aes(x = liveness))+
+  geom_histogram(color = "white")
+
+favorite_artists %>% 
+  filter(track_artist == "Post Malone") %>% 
+  ggplot(aes(x = liveness))+
+  geom_histogram(color = "white")
 ```
 
+**Let's calculate the mean track_popularity for each artist**
+
+```{r}
+favorite_artists %>% 
+  group_by(track_artist) %>% 
+  summarize(mean_popularity = mean(track_popularity)) %>% 
+  ggplot(aes(x = fct_reorder(track_artist, mean_popularity), y = mean_popularity))+
+  geom_col()+
+  coord_flip()
+```
+
+**Is there a relationship between release year and popularity?**
+
+```{r}
+ggplot(data = favorite_artists, aes(x = release_year, y = track_popularity))+
+  geom_point(aes(color = track_artist))
+```
+
+```{r}
+favorite_artists %>% 
+  group_by(track_artist) %>% 
+  summarize(mean_danceability = mean(danceability)) %>% 
+  ggplot(aes(x = fct_reorder(track_artist, mean_danceability), y = mean_danceability))+
+  geom_col()+
+  coord_flip()
+```
+
+```{r}
+favorite_artists %>% 
+  group_by(track_artist) %>% 
+  summarize(mean_tempo = mean(tempo)) %>% 
+  ggplot(aes(x = fct_reorder(track_artist, mean_tempo), y = mean_tempo))+
+  geom_col()+
+  coord_flip()
+```
+
+```{r}
+favorite_artists %>% 
+  group_by(track_artist) %>% 
+  summarize(mean_instrumentalness = mean(instrumentalness)) %>% 
+  ggplot(aes(x = fct_reorder(track_artist, mean_instrumentalness), y = mean_instrumentalness))+
+  geom_col()+
+  coord_flip()
+```
+
+
+```{r}
+favorite_artists %>% 
+  group_by(track_artist) %>% 
+  summarize(mean_acousticness = mean(acousticness)) %>% 
+  ggplot(aes(x = fct_reorder(track_artist, mean_acousticness), y = mean_acousticness))+
+  geom_col()+
+  coord_flip()
+```
+
+## Predictive Model
