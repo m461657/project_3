@@ -7,6 +7,8 @@ library(tidymodels)
 library(ggplot2)
 library(ggthemes)
 library(lubridate)
+library(rpart.plot)
+library(randomForest)
 ```
 
 
@@ -177,4 +179,89 @@ favorite_artists %>%
   coord_flip()
 ```
 
+
 ## Predictive Model
+
+```{r}
+# create a dataset with the columns we are going to use to fit our model
+
+artists_model = favorite_artists %>% 
+  select(track_artist, track_popularity, playlist_genre, danceability, energy, loudness, speechiness, acousticness, instrumentalness, liveness, tempo, release_year)
+
+# convert track_artist to a factor
+artists_model$track_artist = as.factor(artists_model$track_artist)
+```
+
+```{r}
+# Split the data into a testing and training set
+set.seed(9)
+artists_split = initial_split(artists_model, prop = .3)
+artists_train = training(artists_split)
+artists_test = testing(artists_split)
+```
+*Classification Tree*
+```{r}
+# fit a classification tree on the training set
+artists_tree = decision_tree() %>% 
+  set_engine(engine = "rpart") %>% 
+  set_mode(mode = "classification") %>% 
+  fit(track_artist ~ ., data = artists_train)
+
+rpart.plot(artists_tree$fit, roundint = FALSE)
+```
+
+```{r}
+# generate predictions using the trained model to predict track_artist for the testing set
+tree_pred = artists_tree %>% 
+  predict(new_data = artists_test)
+
+# create a new column called pred_track_artist --> this gives the predicted track_artist based on our model
+# calculate the accuracy of the model
+artists_test %>% 
+  mutate(pred_track_artist = tree_pred$.pred_class) %>% 
+  accuracy(estimate = pred_track_artist, truth = track_artist)
+
+artists_test %>% 
+  mutate(pred_track_artist = tree_pred$.pred_class) %>% 
+  select(track_artist, pred_track_artist)
+```
+
+```{r}
+# now, check for overfitting
+train_pred = artists_tree %>% 
+  predict(new_data = artists_train)
+
+artists_train %>% 
+  mutate(pred_track_artist = train_pred$.pred_class) %>% 
+  accuracy(estimate = pred_track_artist, truth = track_artist)
+```
+
+*Random Forest*
+```{r}
+artists_train = droplevels(artists_train)
+artists_test = droplevels(artists_test)
+
+# fit a random forest
+artists_rf = rand_forest() %>% 
+  set_engine(engine = "randomForest") %>% 
+  set_mode(mode = "classification") %>% 
+  fit(track_artist ~ ., data = artists_train)
+```
+
+```{r}
+# generate predictions using the trained model to predict track_artist for the testing set
+rf_pred = artists_rf %>% 
+  predict(new_data = artists_test)
+
+# create a new column called pred_track_artist --> this gives the predicted track_artist based on our random forest
+# calculate the accuracy
+artists_test %>% 
+  mutate(pred_track_artist = rf_pred$.pred_class) %>% 
+  accuracy(truth = track_artist, estimate = pred_track_artist)
+
+
+artists_test %>% 
+  mutate(pred_track_artist = tree_pred$.pred_class) %>% 
+  select(track_artist, pred_track_artist)
+```
+
