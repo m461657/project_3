@@ -1,7 +1,7 @@
 # Project 3
 ## Megan Willis & Kyle Goulart
 
-```{r, eval = FALSE, echo = FALSE, warning = FALSE}
+```{r, echo = FALSE, warning = FALSE}
 library(tidyverse)
 library(tidymodels)
 library(ggplot2)
@@ -9,8 +9,12 @@ library(ggthemes)
 library(lubridate)
 library(rpart.plot)
 library(randomForest)
+library(ggthemr)
 ```
 
+```{r}
+ggthemr("chalk", type = "outer", layout = "minimal")
+```
 
 ```{r, echo = FALSE, warning = FALSE}
 # Our dataset: Spotify Songs
@@ -54,15 +58,17 @@ favorite_artists = favorite_artists %>%
 ## Data Exploration
 
 ```{r}
-rgb(30, 215, 96, max=255)
+spotify_green = rgb(30, 215, 96, max=255)
 
 favorite_artists %>% 
   group_by(track_artist) %>% 
   count() %>% 
   ggplot(aes(x = fct_reorder(track_artist, n), y = n))+
-  geom_col(aes(fill = "#1ED760"))+
+  geom_col(fill = spotify_green, color = "gray40")+
   coord_flip()+
-  labs(x = "", y = "Song Count")
+  labs(x = "", y = "Song Count", title = "Number of Songs per Artist", caption = "Source: Song Genres via R for Data Science")+
+  theme(plot.caption = element_text(size = 8, hjust = -.75), plot.title = element_text(hjust = .5, size = 18))
+  
 ```
 
 ```{r}
@@ -86,15 +92,19 @@ favorite_artists %>%
   group_by(track_artist) %>% 
   summarize(mean_popularity = mean(track_popularity)) %>% 
   ggplot(aes(x = fct_reorder(track_artist, mean_popularity), y = mean_popularity))+
-  geom_col()+
-  coord_flip()
+  geom_col(fill = spotify_green, color = "gray40")+
+  coord_flip()+
+  labs(x = "", y = "Average Track Popularity", title = "Average Track Popularity per Artist", caption = "Source: Song Genres via R for Data Science")+
+  theme(plot.caption = element_text(size = 8, hjust = -.75), plot.title = element_text(hjust = .5, size = 18))
 ```
 
 **Is there a relationship between release year and popularity?**
 
 ```{r}
 ggplot(data = favorite_artists, aes(x = release_year, y = track_popularity))+
-  geom_point(aes(color = track_artist))
+  geom_point(color = spotify_green)+
+  labs(x = "Year Released", y = "Track Popularity", title = "Track Popularity vs. Year Released", caption = "Source: Song Genres via R for Data Science")+
+  theme(plot.caption = element_text(size = 8, hjust = -.12), plot.title = element_text(hjust = .5, size = 18))
 ```
 
 ```{r}
@@ -102,8 +112,10 @@ favorite_artists %>%
   group_by(track_artist) %>% 
   summarize(mean_danceability = mean(danceability)) %>% 
   ggplot(aes(x = fct_reorder(track_artist, mean_danceability), y = mean_danceability))+
-  geom_col()+
-  coord_flip()
+  geom_col(fill = spotify_green, color = "gray40")+
+  coord_flip()+
+  labs(x = "", y = "Average Danceability", title = "Average Danceability by Artist", caption = "Source: Song Genres via R for Data Science")+
+  theme(plot.caption = element_text(size = 8, hjust = -.75), plot.title = element_text(hjust = .5, size = 18))
 ```
 
 ```{r}
@@ -111,8 +123,10 @@ favorite_artists %>%
   group_by(track_artist) %>% 
   summarize(mean_tempo = mean(tempo)) %>% 
   ggplot(aes(x = fct_reorder(track_artist, mean_tempo), y = mean_tempo))+
-  geom_col()+
-  coord_flip()
+  geom_col(fill = spotify_green, color = "gray40")+
+  coord_flip()+
+  labs(x = "", y = "Average Tempo", title = "Average Tempo by Artist", caption = "Source: Song Genres via R for Data Science")+
+  theme(plot.caption = element_text(size = 8, hjust = -.75), plot.title = element_text(hjust = .5, size = 18))
 ```
 
 ```{r}
@@ -120,8 +134,10 @@ favorite_artists %>%
   group_by(track_artist) %>% 
   summarize(mean_instrumentalness = mean(instrumentalness)) %>% 
   ggplot(aes(x = fct_reorder(track_artist, mean_instrumentalness), y = mean_instrumentalness))+
-  geom_col()+
-  coord_flip()
+  geom_col(fill = spotify_green, color = "gray40")+
+  coord_flip()+
+  labs(x = "", y = "Average Instrumentalness", title = "Average Instrumentalness by Artist", caption = "Source: Song Genres via R for Data Science")+
+  theme(plot.caption = element_text(size = 8, hjust = -.75), plot.title = element_text(hjust = .5, size = 18))
 ```
 
 
@@ -130,10 +146,11 @@ favorite_artists %>%
   group_by(track_artist) %>% 
   summarize(mean_acousticness = mean(acousticness)) %>% 
   ggplot(aes(x = fct_reorder(track_artist, mean_acousticness), y = mean_acousticness))+
-  geom_col()+
-  coord_flip()
+  geom_col(fill = spotify_green, color = "gray40")+
+  coord_flip()+
+  labs(x = "", y = "Average Acousticness", title = "Average Acousticness by Artist", caption = "Source: Song Genres via R for Data Science")+
+  theme(plot.caption = element_text(size = 8, hjust = -.75), plot.title = element_text(hjust = .5, size = 18))
 ```
-
 
 ## Predictive Model
 
@@ -154,6 +171,7 @@ artists_split = initial_split(artists_model, prop = .3)
 artists_train = training(artists_split)
 artists_test = testing(artists_split)
 ```
+
 *Classification Tree*
 ```{r}
 # fit a classification tree on the training set
@@ -162,7 +180,9 @@ artists_tree = decision_tree() %>%
   set_mode(mode = "classification") %>% 
   fit(track_artist ~ ., data = artists_train)
 
-rpart.plot(artists_tree$fit, roundint = FALSE)
+rpart.plot(artists_tree$fit, roundint = FALSE, box.col = spotify_green, col = "black", branch.lwd = 3.5)
+
+
 ```
 
 ```{r}
