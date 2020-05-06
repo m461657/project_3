@@ -79,51 +79,6 @@ favorite_artists %>%
 
 **release date and popularity**
 
-
-**Let's see if certain artists have similar values for tempo and dancibility**
-
-```{r, eval = FALSE}
-favorite_artists %>% 
-  filter(track_artist == "Queen") %>%   
-  ggplot(aes(x = danceability))+
-  geom_histogram(color = "white")
-
-favorite_artists %>% 
-  filter(track_artist == "Logic") %>% 
-  ggplot(aes(x = danceability))+
-  geom_histogram(color = "white")
-
-favorite_artists %>% 
-  filter(track_artist == "Queen") %>%   
-  ggplot(aes(x = tempo))+
-  geom_histogram(color = "white")
-
-favorite_artists %>% 
-  filter(track_artist == "Logic") %>% 
-  ggplot(aes(x = tempo))+
-  geom_histogram(color = "white")
-
-favorite_artists %>% 
-  filter(track_artist == "Queen") %>%   
-  ggplot(aes(x = acousticness))+
-  geom_histogram(color = "white")
-
-favorite_artists %>% 
-  filter(track_artist == "Logic") %>% 
-  ggplot(aes(x = acousticness))+
-  geom_histogram(color = "white")
-
-favorite_artists %>% 
-  filter(track_artist == "Queen") %>%   
-  ggplot(aes(x = liveness))+
-  geom_histogram(color = "white")
-
-favorite_artists %>% 
-  filter(track_artist == "Post Malone") %>% 
-  ggplot(aes(x = liveness))+
-  geom_histogram(color = "white")
-```
-
 **Let's calculate the mean track_popularity for each artist**
 
 ```{r}
@@ -235,33 +190,3 @@ artists_train %>%
   mutate(pred_track_artist = train_pred$.pred_class) %>% 
   accuracy(estimate = pred_track_artist, truth = track_artist)
 ```
-
-*Random Forest*
-```{r}
-artists_train = droplevels(artists_train)
-artists_test = droplevels(artists_test)
-
-# fit a random forest
-artists_rf = rand_forest() %>% 
-  set_engine(engine = "randomForest") %>% 
-  set_mode(mode = "classification") %>% 
-  fit(track_artist ~ ., data = artists_train)
-```
-
-```{r}
-# generate predictions using the trained model to predict track_artist for the testing set
-rf_pred = artists_rf %>% 
-  predict(new_data = artists_test)
-
-# create a new column called pred_track_artist --> this gives the predicted track_artist based on our random forest
-# calculate the accuracy
-artists_test %>% 
-  mutate(pred_track_artist = rf_pred$.pred_class) %>% 
-  accuracy(truth = track_artist, estimate = pred_track_artist)
-
-
-artists_test %>% 
-  mutate(pred_track_artist = tree_pred$.pred_class) %>% 
-  select(track_artist, pred_track_artist)
-```
-
