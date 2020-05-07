@@ -1,13 +1,12 @@
 ---
-title: "" 
+title: "How Can We Use the Data Science Process to Predict Our Favorite Artists?" 
 author: "Megan Willis & Kyle Goulart"
-date:
+date: "05/09/20"
 output: 
   html_document:
     theme: "spacelab"
     code_folding: hide
 ---
-
 
 ```{r, echo = FALSE, warning = FALSE, message = FALSE}
 library(tidyverse)
@@ -23,9 +22,22 @@ library(ggthemr)
 # Our dataset: Spotify Songs
 spotify_songs <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-01-21/spotify_songs.csv')
 ```
-# Introduction
+## Introduction
 
-For this project, we are creating a predictive model (a classification tree) to predict the `track_artist` based on a list of features. We are using the `spotify_songs` dataset from the R for Data Science github. We decided to create a new dataset, with 14 of our favorite artists. These artists were only chosen because they are some of our favorites, not for any other reason. The list of artists include:
+Our goal for this project is to go through the entire data science process, starting with some data exploration, data wrangling, data viz, all the way through creating a predictive model using `tidymodels`! We will be using the `spotify_songs` dataset from the R for Data Science github. Our final portion of the project will be predicting `track_artist` from a long list of features (specifically: track_popularity, playlist_genre, danceability, energy, loudness, speechiness, acousticness, instrumentalness, liveness, tempo, release_year). 
+
+We also set a theme for all our graphics using `ggthemr`, and saved the color *Spotify* uses for our graphics later on.
+```{r, warning = FALSE, message = FALSE}
+ggthemr("chalk", type = "outer", layout = "minimal")
+
+spotify_green = rgb(30, 215, 96, max=255)
+```
+
+## Data Wrangling
+
+### Filter for our favorite artists
+
+We decided to filter the `spotify_songs` dataset and create a new dataset with some of our favorite artists, since the original dataset contained over 32,000 observations. We ended up choosing 14 of our favorite artists, each with varied total number of tracks, as well as many different genres. These artists include: 
 
 - Tame Impala
 - A$AP Rocky
@@ -42,19 +54,6 @@ For this project, we are creating a predictive model (a classification tree) to 
 - Chance the Rapper
 - Mac DeMarco
 
-For this project, we go through the entire data science process, starting with some data wrangling, exploration, and finishing with the predictive model.
-
-We also set a theme for all our graphics using `ggthemr`, and saved the color Spotify uses for our graphics later on.
-```{r, warning = FALSE, message = FALSE}
-ggthemr("chalk", type = "outer", layout = "minimal")
-
-spotify_green = rgb(30, 215, 96, max=255)
-```
-
-# Data Wrangling
-
-### Filtering for our favorite artists
-
 This code is used to filter for our 14 favorite artists, as well as select the columns in the original `spotify_songs` dataset we wanted to include in our new `favorite_artists` dataset.
 ```{r}
 favorite_artists = spotify_songs %>% 
@@ -62,7 +61,7 @@ favorite_artists = spotify_songs %>%
   select(track_artist, track_name, track_album_name, track_album_release_date, track_popularity, playlist_genre, danceability, energy, loudness, speechiness, acousticness, instrumentalness, liveness, tempo, duration_ms)
 ```
 
-### Let's create a column for release year
+### Create a column for release year
 
 This code is used to extract the year from the `track_album_release_date` column, save it as `release_year`, and then convert `release_year` to a numeric (before, it was a character string). Then, we reselcted the columns, and included our new column `release_year` instead of `track_album_release_date`.
 ```{r}
@@ -73,6 +72,8 @@ favorite_artists = favorite_artists %>%
 ```
 
 ## Data Exploration
+
+Before beginning the process of creating a predictive model, we wanted to explore the relationships between some of our features and our selected artists. Specifically, we wanted to see if there was variation from artist to artist among the selected features.
 
 We wanted to explore the number of songs each artist we chose had, because we are concerned that the model may do a better job at predicting the artists with a higher song count. This graphic shows that *Queen* has the most songs in this dataset, followed by *Logic* and *Post Malone*. 
 ```{r}
@@ -87,9 +88,9 @@ favorite_artists %>%
 ```
 
 
-**If predictive model is REALLY bad create a fct_lump other category for artists with small n**
+For the next few graphics, we wanted to see the variations of some of the features we will use in our predictive model for each artist.
 
-In this block of code, we calculated the average popularity of each artist using the `track_popularity` column. We then created a graphic displaying the order of popularity of the artists that we hand-picked earlier. We wanted to explore the variations in averge populartiy between each of the artist to maybe use in our model.
+In this block of code, we calculated the average popularity of each artist using the `track_popularity` column. We then created a graphic displaying the order of popularity of the artists that we hand-picked earlier. We wanted to explore the variations in averge populartiy between each of the artist to maybe use in our model. This graphic does show that the average `track_popularity` *does* vary for each artist, with the highest mean popularity going to Tyler, The Creator.
 ```{r}
 favorite_artists %>% 
   group_by(track_artist) %>% 
@@ -101,17 +102,8 @@ favorite_artists %>%
   theme(plot.caption = element_text(size = 8, hjust = -.75), plot.title = element_text(hjust = .5, size = 18))
 ```
 
-Since our artists come from varied time periods, we created this graphic in order to visulaize whether track popularities have a correlation with the year of release or not. From this plot, we can deduce that there is no real trend between popularity and year released.
-```{r}
-ggplot(data = favorite_artists, aes(x = release_year, y = track_popularity))+
-  geom_point(color = spotify_green)+
-  labs(x = "Year Released", y = "Track Popularity", title = "Track Popularity vs. Year Released", caption = "Source: Song Genres via R for Data Science")+
-  theme(plot.caption = element_text(size = 8, hjust = -.12), plot.title = element_text(hjust = .5, size = 18))
-```
 
-For the next few graphics, we wanted to see the variations of some of the features we will use in our predictive model for each artist.
-
-First up is `danceability`. We calulated the average danceability of each artist based on their tracks and plotted the results from greatest to least. We found that out of our 14 artists, Michael Jackson had the highest average danceability for his music.
+First up is `danceability`. We calulated the average danceability of each artist based on their tracks and plotted the results from greatest to least. Like the graphic above, there is a clear variation in the average `danceability` from artist to artist, with Michael Jackson coming out on top (DUH!).
 ```{r}
 favorite_artists %>% 
   group_by(track_artist) %>% 
@@ -122,6 +114,7 @@ favorite_artists %>%
   labs(x = "", y = "Average Danceability", title = "Average Danceability by Artist", caption = "Source: Song Genres via R for Data Science")+
   theme(plot.caption = element_text(size = 8, hjust = -.75), plot.title = element_text(hjust = .5, size = 18))
 ```
+
 
 Next, we decided to explore `tempo`. Again we calulated the average tempo for each artist based on their tracks and plotted them from greatest to least. Vapire weekend has the highest average tempo against all the other artists.
 ```{r}
@@ -135,6 +128,7 @@ favorite_artists %>%
   theme(plot.caption = element_text(size = 8, hjust = -.75), plot.title = element_text(hjust = .5, size = 18))
 ```
 
+
 Then, we moved on to `instrumentalness`. We calculated the average instrumentalness for each artist and the results reveal that Mac DeMarco had the highest instrumentalness among all of his tracks. This, of course, may be skewed due to Mac DeMarco only having 4 songs in the dataset.
 ```{r}
 favorite_artists %>% 
@@ -147,7 +141,8 @@ favorite_artists %>%
   theme(plot.caption = element_text(size = 8, hjust = -.75), plot.title = element_text(hjust = .5, size = 18))
 ```
 
-Finally, we explored the average `acousticness` for each of our 14 artists. Graphing it the same way as the others before, we find that Vampire Weekend again comes out on top but this time for acoustiness.
+
+Finally, we explored the average `acousticness` for each of our 14 artists. Graphing it the same way as the others before, we find that Vampire Weekend again comes out on top, but this time for acoustiness.
 ```{r}
 favorite_artists %>% 
   group_by(track_artist) %>% 
@@ -159,10 +154,13 @@ favorite_artists %>%
   theme(plot.caption = element_text(size = 8, hjust = -.75), plot.title = element_text(hjust = .5, size = 18))
 ```
 
+
+Each of these graphics give us a better understanding of these features and their relationship with our 14 favorite artists. This information supports our decision to use these features and more in our predictive model.
+
 ## Predictive Model
 
 The final part of our project is to create a predicitve model using our data. To make things easier, we created a new dataset called `artists_model` which excludes some unnecessary columns from `favorite_artists`. Also, we converted the `track_artist` column from a character type to a factor because, for classification trees, the target needs to be a factor.
-```{r}
+```{r, warning = FALSE, message = FALSE}
 artists_model = favorite_artists %>% 
   select(track_artist, track_popularity, playlist_genre, danceability, energy, loudness, speechiness, acousticness, instrumentalness, liveness, tempo, release_year)
 
@@ -170,7 +168,7 @@ artists_model$track_artist = as.factor(artists_model$track_artist)
 ```
 
 In this block of code, we split the data with a 70/30 proportion and used this to create a training set and a testing set.
-```{r}
+```{r, warning = FALSE, message = FALSE}
 set.seed(9)
 artists_split = initial_split(artists_model, prop = .3)
 artists_train = training(artists_split)
@@ -183,7 +181,7 @@ Here is where we fit a classification tree on the training set. The structure of
 - Then, we set the engine to *rpart* which is engine that produces decision trees.
 - Next, we st the mode to *classification* because our target is categorical.
 - Finally, we fit a model predicting `track_artist` based on the other features in the `artists_train` dataset. This is our trained model.
-```{r}
+```{r, warning = FALSE, message = FALSE}
 artists_tree = decision_tree() %>% 
   set_engine(engine = "rpart") %>% 
   set_mode(mode = "classification") %>% 
@@ -191,12 +189,12 @@ artists_tree = decision_tree() %>%
 ```
 
 The following code takes our trained model, `artists_tree`, and displays the split levels in our model.
-```{r}
+```{r, warning = FALSE, message = FALSE}
 rpart.plot(artists_tree$fit, roundint = FALSE, box.col = spotify_green, col = "black", branch.lwd = 3.5)
 ```
 
 After displaying our classification tree, we generated predictions using the trained model to predict `track_artist` for the testing set and saved those predictions as `tree_pred`. We then created a new column called `pred_track_artist` by extracting the predictions from `tree_pred`. And lastly, we calculated the accuracy of our model's predictions.
-```{r}
+```{r, warning = FALSE, message = FALSE}
 tree_pred = artists_tree %>% 
   predict(new_data = artists_test)
 
@@ -206,7 +204,7 @@ artists_test %>%
 ```
 
 Just to cover our bases, we decided to check for overfitting. To do this, we did the same steps as above, except this time we used the training set instead of the testing set. This is to make sure that the data isn't fit too well on the model it was trained on.
-```{r}
+```{r, warning = FALSE, message = FALSE}
 train_pred = artists_tree %>% 
   predict(new_data = artists_train)
 
@@ -215,4 +213,13 @@ artists_train %>%
   accuracy(estimate = pred_track_artist, truth = track_artist)
 ```
 
-###
+## Conclusion
+
+Because our overall goal was to create a predictive model (a classification tree) predicting `track_artist` from a plethora of features, it is important to analyze the results to see if we were successful! We generated predictions on both the testing and training sets, along with the accuracy of the model for predicting `track_artist` for each set. The predictions made on the testing set had a 52.2% accuracy. Because our dataset contained 14 different artists, the model had 14 artists to 'choose from' when generating predictions. Given these constraints, we concluded that our model yielded decent results when predicting `track_artist`.
+
+However, we did want to check for overfitting because our model had so many features. After generating predictions on the training set, which was the data the model was fit to, we calculated an accuracy of 75.9%. The model's predictions were 23.7% more accurate on the training set in comparison to the testing set. This number is fairly high, which is definitely something to consider. But because the difference in accuracies is on the higher side, it is worth noting that our model *may* be mildly overfit to the training set. One flaw that our model does have is the extreme specificity for the artist to predict. This model will only be useful in predicting `track_artist` for the 14 artists we have chosen, and no others outside of that list.
+
+Throughout this project, we were able to exercise the extent of our knowledge on the data science process as a whole. We explored our data through different graphics, wrangled the data to create new datasets, and created a predictive model. 
+
+
+
