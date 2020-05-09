@@ -25,7 +25,7 @@ spotify_songs <- readr::read_csv('https://raw.githubusercontent.com/rfordatascie
 
 ## Introduction
 
-Our goal for this project is to go through the entire data science process, starting with some data exploration, data wrangling, data viz, all the way through creating a predictive model using `tidymodels`! We will be using the `spotify_songs` dataset from the R for Data Science github. Our final portion of the project will be predicting `track_artist` from a long list of features (specifically: track_popularity, playlist_genre, danceability, energy, loudness, speechiness, acousticness, instrumentalness, liveness, tempo, release_year). 
+Our goal for this project is to go through the entire data science process, starting with some data exploration, data wrangling, data viz, all the way through creating a predictive model using `tidymodels`! We will be using the `spotify_songs` dataset from the *R for Data Science* github. Our final portion of the project will be predicting `track_artist` from a long list of features (specifically: track_popularity, playlist_genre, danceability, energy, loudness, speechiness, acousticness, instrumentalness, liveness, tempo, release_year). 
 
 We also set a theme for all our graphics using `ggthemr`, and saved the color **Spotify** uses for our graphics later on.
 ```{r, warning = FALSE, message = FALSE}
@@ -89,7 +89,7 @@ favorite_artists %>%
 ```
 
 
-For the next few graphics, we wanted to see the variations of some of the features we will use in our predictive model for each artist.
+For the next few graphics, we wanted to see the variations in some of the features for each artist, that we will be using in our predictive model.
 
 First up, we calculated the average popularity of each artist using the `track_popularity` column. We then created a graphic displaying the order of popularity of the artists that we hand-picked earlier. We wanted to explore the variations in averge populartiy between each of the artist to maybe use in our model. This graphic shows that the average `track_popularity` **does** vary for each artist, with the highest mean popularity going to Tyler, The Creator.
 ```{r}
@@ -143,7 +143,7 @@ favorite_artists %>%
 ```
 
 
-Finally, we explored the average `acousticness` for each of our 14 artists. Graphing it the same way as the others before, we find that Vampire Weekend again comes out on top, but this time for acoustiness. This graph also shows deep variations between the artists based on the acousticness of their tracks.
+Finally, we explored the average `acousticness` for each of our 14 artists. Graphing it the same way as the others before, we find that Vampire Weekend again comes out on top, but this time for acousticness. This graph also shows deep variations between the artists based on the acousticness of their tracks.
 ```{r}
 favorite_artists %>% 
   group_by(track_artist) %>% 
@@ -218,7 +218,7 @@ artists_train %>%
 
 Because our overall goal was to create a predictive model (a classification tree) predicting `track_artist` from a plethora of features, it is important to analyze the results to see if we were successful! We generated predictions on both the testing and training sets, along with the accuracy of the model for predicting `track_artist` for each set. The predictions made on the testing set had a 52.2% accuracy. Because our dataset contained 14 different artists, the model had 14 artists to 'choose from' when generating predictions. Given these constraints, we concluded that our model yielded decent results when predicting `track_artist`.
 
-However, we did want to check for overfitting because our model had so many features. After generating predictions on the training set, which was the data the model was fit to, we calculated an accuracy of 75.9%. The model's predictions were 23.7% more accurate on the training set in comparison to the testing set. This number is fairly high, which is definitely something to consider. But because the difference in accuracies is on the higher side, it is worth noting that our model **may** be mildly overfit to the training set. One flaw that our model does have is the extreme specificity for the artist to predict. This model will only be useful in predicting `track_artist` for the 14 artists we have chosen, and no others outside of that list.
+However, we did want to check for overfitting because our model had so many features. After generating predictions on the training set, which was the data the model was fit to, we calculated an accuracy of 75.9%. The model's predictions were 23.7% more accurate on the training set in comparison to the testing set. Because the difference in accuracies is on the higher side, it is worth noting that our model **may** be mildly overfit to the training set. One flaw that our model does have is the extreme specificity for the artist to predict. This model will only be useful in predicting `track_artist` for the 14 artists we have chosen, and no others outside of that list.
 
 Throughout this project, we were able to exercise the extent of our knowledge on the data science process as a whole. We explored our data through different graphics, wrangled the data to create new datasets, and developed a predictive model.
 
